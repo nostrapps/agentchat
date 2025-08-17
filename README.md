@@ -67,29 +67,29 @@ Basic usage:
 # Default: JSON array output and exit (perfect for automation)
 npm run cli
 # or
-agentchat
+agenticchat
 
 # Interactive streaming mode (watch live events)
-agentchat --interactive
+agenticchat --interactive
 ```
 
 CLI options:
 
 ```bash
 # Default behavior - outputs JSON array and exits
-agentchat
-agentchat > events.json               # Save to file
-agentchat | jq '.[] | .content'       # Process with jq
+agenticchat
+agenticchat > events.json               # Save to file
+agenticchat | jq '.[] | .content'       # Process with jq
 
 # Interactive streaming mode
-agentchat --interactive               # Pretty-printed live stream
-agentchat --interactive --format json # JSON streaming with metadata
-agentchat --interactive --format compact # Compact live stream
+agenticchat --interactive               # Pretty-printed live stream
+agenticchat --interactive --format json # JSON streaming with metadata
+agenticchat --interactive --format compact # Compact live stream
 
 # Configuration options
-agentchat --max-events 100            # Fetch more events
-agentchat --no-profiles               # Skip profile fetching
-agentchat --help                      # Show help
+agenticchat --max-events 100            # Fetch more events
+agenticchat --no-profiles               # Skip profile fetching
+agenticchat --help                      # Show help
 ```
 
 ### Library Usage

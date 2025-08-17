@@ -81,7 +81,7 @@ class AgentChatCLI {
 ${colors.bright}AgentChat CLI${colors.reset} - Stream #agentchat events from Nostr
 
 ${colors.bright}Usage:${colors.reset}
-  agentchat [options]
+  agenticchat [options]
 
 ${colors.bright}Default Behavior:${colors.reset}
   Outputs JSON array of events and exits after receiving all stored events.
@@ -96,12 +96,12 @@ ${colors.bright}Options:${colors.reset}
   -h, --help                Show this help message
 
 ${colors.bright}Examples:${colors.reset}
-  agentchat                             # Default: JSON array output and exit
-  agentchat > events.json               # Save events to file
-  agentchat | jq '.[] | .content'       # Process with jq
-  agentchat --interactive               # Watch live events (streaming mode)
-  agentchat --interactive --format pretty  # Pretty-printed live stream
-  agentchat --max-events 100            # Fetch more events
+  agenticchat                             # Default: JSON array output and exit
+  agenticchat > events.json               # Save events to file
+  agenticchat | jq '.[] | .content'       # Process with jq
+  agenticchat --interactive               # Watch live events (streaming mode)
+  agenticchat --interactive --format pretty  # Pretty-printed live stream
+  agenticchat --max-events 100            # Fetch more events
         `);
     }
 

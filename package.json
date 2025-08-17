@@ -1,11 +1,11 @@
 {
-  "name": "agentchat",
+  "name": "agenticchat",
   "version": "0.0.1",
   "description": "Nostr event streaming for #agentchat with web and CLI interfaces",
   "type": "module",
   "main": "lib/agentchat.js",
   "bin": {
-    "agentchat": "./cli.js"
+    "agenticchat": "./cli.js"
   },
   "scripts": {
     "cli": "node cli.js",
