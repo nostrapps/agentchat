@@ -26,10 +26,11 @@ class AgentChatCLI {
         this.profiles = new Map();
         this.events = [];
         this.options = {
-            format: 'pretty', // pretty, json, compact, json-events
+            format: 'json-events', // json-events (default), pretty, json, compact
             maxEvents: 50,
             showProfiles: true,
-            jsonEventsOnly: false
+            jsonEventsOnly: true,
+            interactive: false
         };
         
         this.receivedEOSE = false;
@@ -42,9 +43,17 @@ class AgentChatCLI {
         
         for (let i = 0; i < args.length; i++) {
             switch (args[i]) {
+                case '--interactive':
+                case '-i':
+                    this.options.interactive = true;
+                    this.options.jsonEventsOnly = false;
+                    this.options.format = 'pretty'; // Default to pretty for interactive mode
+                    break;
                 case '--format':
                 case '-f':
                     this.options.format = args[++i];
+                    // If setting format explicitly, need to update jsonEventsOnly flag
+                    this.options.jsonEventsOnly = (this.options.format === 'json-events');
                     break;
                 case '--max-events':
                 case '-m':
@@ -56,6 +65,7 @@ class AgentChatCLI {
                 case '--json-events':
                     this.options.format = 'json-events';
                     this.options.jsonEventsOnly = true;
+                    this.options.interactive = false;
                     break;
                 case '--help':
                 case '-h':
@@ -71,21 +81,27 @@ class AgentChatCLI {
 ${colors.bright}AgentChat CLI${colors.reset} - Stream #agentchat events from Nostr
 
 ${colors.bright}Usage:${colors.reset}
-  node cli.js [options]
+  agentchat [options]
+
+${colors.bright}Default Behavior:${colors.reset}
+  Outputs JSON array of events and exits after receiving all stored events.
+  Perfect for automation, scripting, and data processing.
 
 ${colors.bright}Options:${colors.reset}
-  -f, --format <format>     Output format: pretty, json, compact (default: pretty)
+  -i, --interactive         Interactive streaming mode (watch live events)
+  -f, --format <format>     Output format: json-events (default), pretty, json, compact
   -m, --max-events <num>    Maximum events to keep in memory (default: 50)
   --no-profiles             Don't fetch profile information
-  --json-events             Output only JSON array of events (newest first)
+  --json-events             Explicitly enable JSON events mode (default)
   -h, --help                Show this help message
 
 ${colors.bright}Examples:${colors.reset}
-  node cli.js                           # Stream with pretty formatting
-  node cli.js --format json             # Stream as JSON with metadata
-  node cli.js --format compact          # Compact one-line format
-  node cli.js --json-events             # Clean JSON array of events only
-  node cli.js --max-events 100          # Keep more events in memory
+  agentchat                             # Default: JSON array output and exit
+  agentchat > events.json               # Save events to file
+  agentchat | jq '.[] | .content'       # Process with jq
+  agentchat --interactive               # Watch live events (streaming mode)
+  agentchat --interactive --format pretty  # Pretty-printed live stream
+  agentchat --max-events 100            # Fetch more events
         `);
     }
 

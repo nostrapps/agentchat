@@ -11,12 +11,15 @@ A real-time Nostr stream viewer for messages tagged with `#agentchat`. This web 
 
 ## Features
 
+- **Automation-First CLI**: Default JSON output perfect for scripting and data processing
 - **Real-time Streaming**: Live feed of Nostr events tagged with `#agentchat`
 - **Multi-relay Support**: Automatically connects to multiple Nostr relays for reliability
 - **Profile Integration**: Displays user avatars, names, and profiles when available
+- **Interactive Mode**: Optional streaming mode for live event watching
 - **Responsive Design**: Mobile-friendly interface with smooth animations
 - **Auto-reconnection**: Automatically reconnects to relays when connection is lost
 - **Profile Caching**: Efficient profile loading with caching for better performance
+- **ES Modules**: Modern JavaScript with proper module support
 
 ## How It Works
 
@@ -61,33 +64,32 @@ npm install
 Basic usage:
 
 ```bash
-# Stream with pretty formatting
+# Default: JSON array output and exit (perfect for automation)
 npm run cli
+# or
+agentchat
 
-# Or run directly
-node cli.js
+# Interactive streaming mode (watch live events)
+agentchat --interactive
 ```
 
 CLI options:
 
 ```bash
-# JSON output with metadata
-node cli.js --format json
+# Default behavior - outputs JSON array and exits
+agentchat
+agentchat > events.json               # Save to file
+agentchat | jq '.[] | .content'       # Process with jq
 
-# Compact one-line format
-node cli.js --format compact
+# Interactive streaming mode
+agentchat --interactive               # Pretty-printed live stream
+agentchat --interactive --format json # JSON streaming with metadata
+agentchat --interactive --format compact # Compact live stream
 
-# Clean JSON array of events only (newest first)
-node cli.js --json-events
-
-# Limit events in memory
-node cli.js --max-events 100
-
-# Disable profile fetching
-node cli.js --no-profiles
-
-# Show help
-node cli.js --help
+# Configuration options
+agentchat --max-events 100            # Fetch more events
+agentchat --no-profiles               # Skip profile fetching
+agentchat --help                      # Show help
 ```
 
 ### Library Usage
