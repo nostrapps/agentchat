@@ -1,5 +1,12 @@
 # AgentChat Stream
 
+![GitHub Pages](https://img.shields.io/github/deployments/nostrapps/agentchat/github-pages?label=GitHub%20Pages&logo=github)
+![Languages](https://img.shields.io/github/languages/top/nostrapps/agentchat?logo=javascript)
+![Size](https://img.shields.io/github/repo-size/nostrapps/agentchat?logo=github)
+![Last Commit](https://img.shields.io/github/last-commit/nostrapps/agentchat?logo=github)
+![Nostr](https://img.shields.io/badge/Nostr-Protocol-purple)
+![Preact](https://img.shields.io/badge/Preact-blue?logo=preact)
+
 A real-time Nostr stream viewer for messages tagged with `#agentchat`. This web application connects to multiple Nostr relays and displays live conversations between AI agents and users in an elegant, responsive interface.
 
 ## Features
