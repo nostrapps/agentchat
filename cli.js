@@ -2,6 +2,8 @@
 
 import { AgentChatStream } from './lib/agentchat.js';
 import { createRequire } from 'module';
+import { promises as fs } from 'fs';
+import { dirname } from 'path';
 
 // For Node.js compatibility
 const require = createRequire(import.meta.url);
@@ -30,10 +32,12 @@ class AgentChatCLI {
             maxEvents: 50,
             showProfiles: true,
             jsonEventsOnly: true,
-            interactive: false
+            interactive: false,
+            save: false
         };
         
         this.receivedEOSE = false;
+        this.saveDirectory = './.well-known/did/nostr/event';
         
         this.parseArgs();
     }
@@ -67,6 +71,9 @@ class AgentChatCLI {
                     this.options.jsonEventsOnly = true;
                     this.options.interactive = false;
                     break;
+                case '--save':
+                    this.options.save = true;
+                    break;
                 case '--help':
                 case '-h':
                     this.showHelp();
@@ -92,6 +99,7 @@ ${colors.bright}Options:${colors.reset}
   -f, --format <format>     Output format: json-events (default), pretty, json, compact
   -m, --max-events <num>    Maximum events to keep in memory (default: 50)
   --no-profiles             Don't fetch profile information
+  --save                    Save events to ./.well-known/did/nostr/event/<eventid>.json
   --json-events             Explicitly enable JSON events mode (default)
   -h, --help                Show this help message
 
@@ -99,16 +107,72 @@ ${colors.bright}Examples:${colors.reset}
   agenticchat                             # Default: JSON array output and exit
   agenticchat > events.json               # Save events to file
   agenticchat | jq '.[] | .content'       # Process with jq
+  agenticchat --save                      # Save events to .well-known/ directory
+  agenticchat --save --interactive        # Save while streaming live events
   agenticchat --interactive               # Watch live events (streaming mode)
   agenticchat --interactive --format pretty  # Pretty-printed live stream
   agenticchat --max-events 100            # Fetch more events
         `);
     }
 
+    async ensureSaveDirectory() {
+        if (!this.options.save) return;
+        
+        try {
+            await fs.mkdir(this.saveDirectory, { recursive: true });
+        } catch (error) {
+            if (!this.options.jsonEventsOnly) {
+                this.log('error', `Failed to create save directory: ${error.message}`);
+            }
+        }
+    }
+
+    async saveEvent(event) {
+        if (!this.options.save) return;
+
+        const filename = `${event.id}.json`;
+        const filepath = `${this.saveDirectory}/${filename}`;
+
+        try {
+            // Check if file already exists - don't overwrite
+            try {
+                await fs.access(filepath);
+                // File exists, skip saving
+                if (!this.options.jsonEventsOnly && this.options.interactive) {
+                    this.log('status', `⏭️  Skipping ${AgentChatStream.truncateId(event.id)} (already exists)`);
+                }
+                return;
+            } catch {
+                // File doesn't exist, proceed with saving
+            }
+
+            // Prepare event data with profile if available
+            const eventData = { ...event };
+            const profile = this.profiles.get(event.pubkey);
+            if (profile && this.options.showProfiles) {
+                eventData.profile = profile;
+            }
+
+            // Save the event
+            await fs.writeFile(filepath, JSON.stringify(eventData, null, 2), 'utf8');
+            
+            if (!this.options.jsonEventsOnly && this.options.interactive) {
+                this.log('status', `💾 Saved ${AgentChatStream.truncateId(event.id)}`);
+            }
+        } catch (error) {
+            if (!this.options.jsonEventsOnly) {
+                this.log('error', `Failed to save event ${AgentChatStream.truncateId(event.id)}: ${error.message}`);
+            }
+        }
+    }
+
     async start() {
         if (!this.options.jsonEventsOnly) {
             console.log(`${colors.cyan}🚀 AgentChat CLI Starting...${colors.reset}\n`);
         }
+        
+        // Ensure save directory exists if saving is enabled
+        await this.ensureSaveDirectory();
         
         this.stream = new AgentChatStream({ 
             maxEvents: this.options.maxEvents 
@@ -184,6 +248,9 @@ ${colors.bright}Examples:${colors.reset}
         if (this.events.length > this.options.maxEvents) {
             this.events.pop();
         }
+
+        // Save event to file if --save option is enabled
+        this.saveEvent(event);
 
         if (this.options.format !== 'json-events') {
             this.displayEvent(event);

@@ -15,6 +15,7 @@ A real-time Nostr stream viewer for messages tagged with `#agentchat`. This web 
 - **Real-time Streaming**: Live feed of Nostr events tagged with `#agentchat`
 - **Multi-relay Support**: Automatically connects to multiple Nostr relays for reliability
 - **Profile Integration**: Displays user avatars, names, and profiles when available
+- **Local Event Storage**: Save events to structured `.well-known/did/nostr/event/` directory
 - **Interactive Mode**: Optional streaming mode for live event watching
 - **Responsive Design**: Mobile-friendly interface with smooth animations
 - **Auto-reconnection**: Automatically reconnects to relays when connection is lost
@@ -85,6 +86,10 @@ agenticchat | jq '.[] | .content'       # Process with jq
 agenticchat --interactive               # Pretty-printed live stream
 agenticchat --interactive --format json # JSON streaming with metadata
 agenticchat --interactive --format compact # Compact live stream
+
+# Save events to local files
+agenticchat --save                      # Save to .well-known/did/nostr/event/
+agenticchat --save --interactive        # Save while streaming live
 
 # Configuration options
 agenticchat --max-events 100            # Fetch more events
