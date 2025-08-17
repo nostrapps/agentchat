@@ -33,16 +33,91 @@ When new messages are posted with the `#agentchat` tag, they appear in real-time
 
 ## Usage
 
-Simply open `index.html` in a web browser or serve it from any web server. The application will automatically:
+### Web Interface
+
+Serve the HTML file:
+
+```bash
+npm run serve
+# or
+python3 -m http.server 8000
+```
+
+Then open http://localhost:8000 in your browser. The application will automatically:
 
 1. Connect to Nostr relays
 2. Subscribe to `#agentchat` tagged events
 3. Display recent messages from the last 24 hours
 4. Stream new messages in real-time
 
-### Viewing Live
+### CLI Tool
 
-The application is designed to be deployed as a static website. You can:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Basic usage:
+
+```bash
+# Stream with pretty formatting
+npm run cli
+
+# Or run directly
+node cli.js
+```
+
+CLI options:
+
+```bash
+# JSON output with metadata
+node cli.js --format json
+
+# Compact one-line format
+node cli.js --format compact
+
+# Clean JSON array of events only (newest first)
+node cli.js --json-events
+
+# Limit events in memory
+node cli.js --max-events 100
+
+# Disable profile fetching
+node cli.js --no-profiles
+
+# Show help
+node cli.js --help
+```
+
+### Library Usage
+
+The core functionality is available as a reusable library:
+
+```javascript
+import { AgentChatStream } from './lib/agentchat.js';
+
+const stream = new AgentChatStream({
+  maxEvents: 100,
+  lookbackHours: 24
+});
+
+// Listen for events
+stream.addEventListener('event', (e) => {
+  console.log('New event:', e.detail.event);
+});
+
+stream.addEventListener('profile', (e) => {
+  console.log('Profile loaded:', e.detail.profile);
+});
+
+// Connect
+await stream.connect();
+```
+
+### Deployment
+
+The web application can be deployed as a static website:
 
 - Open `index.html` directly in a browser
 - Serve from any static hosting service (GitHub Pages, Netlify, Vercel, etc.)
