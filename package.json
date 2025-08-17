@@ -1,6 +1,6 @@
 {
   "name": "agentchat",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "Nostr event streaming for #agentchat with web and CLI interfaces",
   "type": "module",
   "main": "lib/agentchat.js",
