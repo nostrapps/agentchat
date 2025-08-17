@@ -26,9 +26,10 @@ class AgentChatCLI {
         this.profiles = new Map();
         this.events = [];
         this.options = {
-            format: 'pretty', // pretty, json, compact
+            format: 'pretty', // pretty, json, compact, json-events
             maxEvents: 50,
-            showProfiles: true
+            showProfiles: true,
+            jsonEventsOnly: false
         };
         
         this.parseArgs();
@@ -50,6 +51,10 @@ class AgentChatCLI {
                 case '--no-profiles':
                     this.options.showProfiles = false;
                     break;
+                case '--json-events':
+                    this.options.format = 'json-events';
+                    this.options.jsonEventsOnly = true;
+                    break;
                 case '--help':
                 case '-h':
                     this.showHelp();
@@ -70,18 +75,22 @@ ${colors.bright}Options:${colors.reset}
   -f, --format <format>     Output format: pretty, json, compact (default: pretty)
   -m, --max-events <num>    Maximum events to keep in memory (default: 50)
   --no-profiles             Don't fetch profile information
+  --json-events             Output only JSON array of events (newest first)
   -h, --help                Show this help message
 
 ${colors.bright}Examples:${colors.reset}
   node cli.js                           # Stream with pretty formatting
-  node cli.js --format json             # Stream as JSON
+  node cli.js --format json             # Stream as JSON with metadata
   node cli.js --format compact          # Compact one-line format
+  node cli.js --json-events             # Clean JSON array of events only
   node cli.js --max-events 100          # Keep more events in memory
         `);
     }
 
     async start() {
-        console.log(`${colors.cyan}🚀 AgentChat CLI Starting...${colors.reset}\n`);
+        if (!this.options.jsonEventsOnly) {
+            console.log(`${colors.cyan}🚀 AgentChat CLI Starting...${colors.reset}\n`);
+        }
         
         this.stream = new AgentChatStream({ 
             maxEvents: this.options.maxEvents 
@@ -89,19 +98,27 @@ ${colors.bright}Examples:${colors.reset}
 
         // Set up event listeners
         this.stream.addEventListener('connecting', () => {
-            this.log('status', '🔄 Connecting to Nostr relays...');
+            if (!this.options.jsonEventsOnly) {
+                this.log('status', '🔄 Connecting to Nostr relays...');
+            }
         });
 
         this.stream.addEventListener('connected', (e) => {
-            this.log('status', `✅ Connected to ${e.detail.relay}`);
+            if (!this.options.jsonEventsOnly) {
+                this.log('status', `✅ Connected to ${e.detail.relay}`);
+            }
         });
 
         this.stream.addEventListener('disconnected', (e) => {
-            this.log('status', `❌ Disconnected from ${e.detail.relay || 'relay'}`);
+            if (!this.options.jsonEventsOnly) {
+                this.log('status', `❌ Disconnected from ${e.detail.relay || 'relay'}`);
+            }
         });
 
         this.stream.addEventListener('error', (e) => {
-            this.log('error', `💥 Error: ${e.detail.message}`);
+            if (!this.options.jsonEventsOnly) {
+                this.log('error', `💥 Error: ${e.detail.message}`);
+            }
         });
 
         this.stream.addEventListener('event', (e) => {
@@ -121,7 +138,12 @@ ${colors.bright}Examples:${colors.reset}
 
         // Handle graceful shutdown
         process.on('SIGINT', () => {
-            console.log(`\n${colors.yellow}👋 Shutting down gracefully...${colors.reset}`);
+            if (this.options.jsonEventsOnly) {
+                // Output final JSON array when shutting down
+                this.outputJsonEventsArray();
+            } else {
+                console.log(`\n${colors.yellow}👋 Shutting down gracefully...${colors.reset}`);
+            }
             this.stream.disconnect();
             process.exit(0);
         });
@@ -133,7 +155,9 @@ ${colors.bright}Examples:${colors.reset}
             this.events.pop();
         }
 
-        this.displayEvent(event);
+        if (this.options.format !== 'json-events') {
+            this.displayEvent(event);
+        }
     }
 
     displayEvent(event) {
@@ -193,10 +217,23 @@ ${colors.bright}Examples:${colors.reset}
         console.log();
     }
 
+    outputJsonEventsArray() {
+        const eventsWithProfiles = this.events.map(event => {
+            const eventData = { ...event };
+            const profile = this.profiles.get(event.pubkey);
+            if (profile && this.options.showProfiles) {
+                eventData.profile = profile;
+            }
+            return eventData;
+        });
+        
+        console.log(JSON.stringify(eventsWithProfiles, null, 2));
+    }
+
     updateDisplayForProfile(pubkey) {
         // In pretty mode, we don't need to redraw events
         // Profile info will be used for future events
-        if (this.options.format === 'pretty' && this.options.showProfiles) {
+        if (this.options.format === 'pretty' && this.options.showProfiles && !this.options.jsonEventsOnly) {
             const profile = this.profiles.get(pubkey);
             if (profile) {
                 this.log('status', `📝 Loaded profile for ${profile.name || AgentChatStream.truncateId(pubkey)}`);
@@ -205,6 +242,10 @@ ${colors.bright}Examples:${colors.reset}
     }
 
     log(type, message) {
+        if (this.options.jsonEventsOnly) {
+            return; // Suppress all log messages in json-events mode
+        }
+        
         const timestamp = new Date().toLocaleTimeString();
         const prefix = type === 'error' ? colors.red : colors.green;
         
