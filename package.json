@@ -1,0 +1,33 @@
+{
+  "name": "agentchat",
+  "version": "1.0.0",
+  "description": "Nostr event streaming for #agentchat with web and CLI interfaces",
+  "type": "module",
+  "main": "lib/agentchat.js",
+  "bin": {
+    "agentchat": "./cli.js"
+  },
+  "scripts": {
+    "cli": "node cli.js",
+    "serve": "python3 -m http.server 8000",
+    "start": "npm run serve"
+  },
+  "dependencies": {
+    "ws": "^8.14.0",
+    "node-fetch": "^3.3.0"
+  },
+  "devDependencies": {},
+  "keywords": [
+    "nostr",
+    "agentchat",
+    "streaming",
+    "websocket",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nostrapps/agentchat.git"
+  }
+}
