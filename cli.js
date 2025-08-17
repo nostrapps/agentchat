@@ -32,6 +32,8 @@ class AgentChatCLI {
             jsonEventsOnly: false
         };
         
+        this.receivedEOSE = false;
+        
         this.parseArgs();
     }
 
@@ -130,6 +132,18 @@ ${colors.bright}Examples:${colors.reset}
             if (profile) {
                 this.profiles.set(pubkey, profile);
                 this.updateDisplayForProfile(pubkey);
+            }
+        });
+
+        this.stream.addEventListener('eose', (e) => {
+            if (e.detail.subscription === 'recent-agentchat') {
+                this.receivedEOSE = true;
+                if (this.options.jsonEventsOnly) {
+                    // Output JSON and exit for json-events mode
+                    this.outputJsonEventsArray();
+                    this.stream.disconnect();
+                    process.exit(0);
+                }
             }
         });
 
